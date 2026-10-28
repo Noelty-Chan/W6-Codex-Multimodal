@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f0">
+  <title>Ollama Multi-modal Image Describer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="#top" aria-label="Ollama Multi-modal Image Describer home"><span class="mark" aria-hidden="true">◉</span> Ollama Multi-modal Image Describer</a>
+    <div class="local-badge"><span class="status-dot"></span> PRIVATE &amp; LOCAL</div>
+  </header>
+
+  <main id="top">
+    <section class="workspace" aria-label="Image description tool">
+      <div class="panel upload-panel">
+        <div class="section-heading"><div><span class="step">01</span><h2>Choose an image</h2></div><span class="format-note">JPG · PNG · WEBP</span></div>
+        <label class="dropzone" id="dropzone" for="image-input" tabindex="0" aria-label="Choose or drop an image">
+          <input id="image-input" type="file" accept="image/*" hidden>
+          <div class="empty-state" id="empty-state">
+            <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 21V5m0 0-6 6m6-6 6 6M6 20v6h20v-6"/></svg></span>
+            <strong>Drop an image here</strong>
+            <span>or <span class="browse-link">browse files</span> on your computer</span>
+            <small>Choose any image up to 20 MB</small>
+          </div>
+          <div class="preview-state" id="preview-state" hidden>
+            <img id="image-preview" alt="Selected image preview">
+            <span class="change-image">Choose another image</span>
+          </div>
+        </label>
+        <div class="image-meta" id="image-meta" hidden><span class="file-icon">▧</span><span id="file-name"></span><button class="icon-button" id="remove-image" type="button" aria-label="Remove image">×</button></div>
+        <div class="model-row"><label for="model-name">VISION MODEL</label><input id="model-name" type="text" value="qwen3-vl:2b-instruct" spellcheck="false" autocomplete="off"><span class="model-hint">via Ollama</span></div>
+        <button id="analyze-button" class="analyze-button" type="button" disabled><span>Describe this image</span><span aria-hidden="true">↗</span></button>
+        <p class="privacy-note"><span aria-hidden="true">⌑</span> Runs locally on your machine. No cloud upload.</p>
+      </div>
+
+      <div class="panel result-panel" aria-live="polite" aria-atomic="false">
+        <div class="section-heading"><div><span class="step">02</span><h2>What’s in the picture?</h2></div><span class="result-status" id="result-status"><span class="status-dot"></span> READY WHEN YOU ARE</span></div>
+        <div class="result-content" id="result-content">
+          <div class="result-empty" id="result-empty"><span class="sparkle" aria-hidden="true">✳</span><p>Your description will appear here.</p><small>A clear, thoughtful summary of the scene, objects, and details.</small></div>
+          <div class="loading-state" id="loading-state" hidden><span class="loader" aria-hidden="true"></span><strong>Taking a closer look…</strong><span>Your local model is analyzing the image.</span></div>
+          <div class="description" id="description" hidden></div>
+          <div class="error-box" id="error-box" hidden><strong id="error-title">Couldn’t connect to Ollama</strong><p id="error-message"></p><details><summary>Connection help</summary><p>Make sure Ollama is running and that the selected vision model is installed. In a terminal, try <code>ollama pull qwen3-vl:2b-instruct</code>. If you opened this page from a local web server, allow that server’s origin in <code>OLLAMA_ORIGINS</code> and restart Ollama.</p></details></div>
+        </div>
+        <div class="result-footer"><button id="copy-button" type="button" hidden>Copy description <span aria-hidden="true">⧉</span></button></div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
