@@ -20,35 +20,53 @@
   <main id="top">
     <section class="workspace" aria-label="Image description tool">
       <div class="panel upload-panel">
-        <div class="section-heading"><div><span class="step">01</span><h2>Choose an image</h2></div><span class="format-note">JPG · PNG · WEBP</span></div>
-        <label class="dropzone" id="dropzone" for="image-input" tabindex="0" aria-label="Choose or drop an image">
-          <input id="image-input" type="file" accept="image/*" hidden>
-          <div class="empty-state" id="empty-state">
-            <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 21V5m0 0-6 6m6-6 6 6M6 20v6h20v-6"/></svg></span>
-            <strong>Drop an image here</strong>
-            <span>or <span class="browse-link">browse files</span> on your computer</span>
-            <small>Choose any image up to 20 MB</small>
+        <div class="section-heading"><div><span class="step">01</span><h2>Choose two images</h2></div><span class="format-note">JPG · PNG · WEBP</span></div>
+        <div class="image-slots">
+          <div class="image-slot" data-slot="0">
+            <h3>Image 1</h3>
+            <label class="dropzone" data-dropzone="0" for="image-input-1" tabindex="0" aria-label="Choose first image">
+              <input id="image-input-1" data-input="0" type="file" accept="image/*" hidden>
+              <div class="empty-state" data-empty="0">
+                <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 21V5m0 0-6 6m6-6 6 6M6 20v6h20v-6"/></svg></span>
+                <strong>Drop or browse</strong>
+                <small>Choose an image up to 20 MB</small>
+              </div>
+              <div class="preview-state" data-preview="0" hidden><img data-image="0" alt="Preview of first image"><span class="change-image">Choose another image</span></div>
+            </label>
+            <div class="image-meta" data-meta="0" hidden><span class="file-icon">▧</span><span data-name="0"></span><button class="icon-button" data-remove="0" type="button" aria-label="Remove first image">×</button></div>
           </div>
-          <div class="preview-state" id="preview-state" hidden>
-            <img id="image-preview" alt="Selected image preview">
-            <span class="change-image">Choose another image</span>
+          <div class="image-slot" data-slot="1">
+            <h3>Image 2</h3>
+            <label class="dropzone" data-dropzone="1" for="image-input-2" tabindex="0" aria-label="Choose second image">
+              <input id="image-input-2" data-input="1" type="file" accept="image/*" hidden>
+              <div class="empty-state" data-empty="1">
+                <span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 21V5m0 0-6 6m6-6 6 6M6 20v6h20v-6"/></svg></span>
+                <strong>Drop or browse</strong>
+                <small>Choose an image up to 20 MB</small>
+              </div>
+              <div class="preview-state" data-preview="1" hidden><img data-image="1" alt="Preview of second image"><span class="change-image">Choose another image</span></div>
+            </label>
+            <div class="image-meta" data-meta="1" hidden><span class="file-icon">▧</span><span data-name="1"></span><button class="icon-button" data-remove="1" type="button" aria-label="Remove second image">×</button></div>
           </div>
-        </label>
-        <div class="image-meta" id="image-meta" hidden><span class="file-icon">▧</span><span id="file-name"></span><button class="icon-button" id="remove-image" type="button" aria-label="Remove image">×</button></div>
+        </div>
         <div class="model-row"><label for="model-name">VISION MODEL</label><input id="model-name" type="text" value="qwen3-vl:2b-instruct" spellcheck="false" autocomplete="off"><span class="model-hint">via Ollama</span></div>
-        <button id="analyze-button" class="analyze-button" type="button" disabled><span>Describe this image</span><span aria-hidden="true">↗</span></button>
+        <button id="analyze-button" class="analyze-button" type="button" disabled><span>Describe both images</span><span aria-hidden="true">↗</span></button>
+        <p class="action-feedback" id="action-feedback" role="status" aria-live="polite"><span class="feedback-dot"></span><span>Select two images to get started.</span></p>
         <p class="privacy-note"><span aria-hidden="true">⌑</span> Runs locally on your machine. No cloud upload.</p>
       </div>
 
       <div class="panel result-panel" aria-live="polite" aria-atomic="false">
         <div class="section-heading"><div><span class="step">02</span><h2>What’s in the picture?</h2></div><span class="result-status" id="result-status"><span class="status-dot"></span> READY WHEN YOU ARE</span></div>
         <div class="result-content" id="result-content">
-          <div class="result-empty" id="result-empty"><span class="sparkle" aria-hidden="true">✳</span><p>Your description will appear here.</p><small>A clear, thoughtful summary of the scene, objects, and details.</small></div>
-          <div class="loading-state" id="loading-state" hidden><span class="loader" aria-hidden="true"></span><strong>Taking a closer look…</strong><span>Your local model is analyzing the image.</span></div>
-          <div class="description" id="description" hidden></div>
+          <div class="result-empty" id="result-empty"><span class="sparkle" aria-hidden="true">✳</span><p>Your descriptions will appear here.</p><small>Each image will receive its own description.</small></div>
+          <div class="description-grid" id="description-grid" hidden>
+            <article class="description-card"><h3>Image 1</h3><p class="output-status" data-output-status="0">Waiting</p><div class="description" data-description="0" hidden></div></article>
+            <article class="description-card"><h3>Image 2</h3><p class="output-status" data-output-status="1">Waiting</p><div class="description" data-description="1" hidden></div></article>
+          </div>
+          <div class="loading-state" id="loading-state" hidden><span class="loader" aria-hidden="true"></span><strong>Taking a closer look…</strong><span>Your local model is analyzing the images.</span></div>
           <div class="error-box" id="error-box" hidden><strong id="error-title">Couldn’t connect to Ollama</strong><p id="error-message"></p><details><summary>Connection help</summary><p>Make sure Ollama is running and that the selected vision model is installed. In a terminal, try <code>ollama pull qwen3-vl:2b-instruct</code>. If you opened this page from a local web server, allow that server’s origin in <code>OLLAMA_ORIGINS</code> and restart Ollama.</p></details></div>
         </div>
-        <div class="result-footer"><button id="copy-button" type="button" hidden>Copy description <span aria-hidden="true">⧉</span></button></div>
+        <div class="result-footer"><button id="copy-button" type="button" hidden>Copy descriptions <span aria-hidden="true">⧉</span></button></div>
       </div>
     </section>
 

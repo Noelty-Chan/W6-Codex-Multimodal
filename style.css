@@ -31,7 +31,11 @@ main { max-width: 1060px; margin: auto; padding: 0 28px; }
 .section-heading h2 { font: 700 15px "Manrope", sans-serif; margin: 0; letter-spacing: -.3px; }
 .step { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; background: var(--sage); color: var(--green); font-size: 9px; }
 .format-note { font-size: 8px; color: #a0a49b; white-space: nowrap; }
+.image-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.image-slot { min-width: 0; }
+.image-slot h3, .description-card h3 { margin: 0 0 8px; color: #697064; font: 700 11px "Manrope", sans-serif; }
 .dropzone { display: block; height: 248px; overflow: hidden; position: relative; border: 1px dashed #d5d9cf; background: #fafbf8; border-radius: 9px; cursor: pointer; transition: .2s ease; }
+.image-slot .dropzone { height: 160px; }
 .dropzone:hover, .dropzone.dragging { border-color: #79947b; background: #f4f7f1; }
 .dropzone:focus-visible { outline: 3px solid #b9cbb7; outline-offset: 3px; }
 .empty-state { height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
@@ -46,6 +50,7 @@ main { max-width: 1060px; margin: auto; padding: 0 28px; }
 .change-image { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); padding: 7px 10px; background: rgba(35, 40, 34, .78); color: white; border-radius: 5px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity .15s; }
 .dropzone:hover .change-image { opacity: 1; }
 .image-meta { display: flex; gap: 8px; align-items: center; margin-top: 10px; color: #74796f; font-size: 11px; min-height: 22px; }
+.image-slot .image-meta { gap: 5px; font-size: 9px; }
 .image-meta > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .file-icon { color: var(--green); font-size: 17px; }
 .icon-button { border: 0; background: transparent; cursor: pointer; color: #989d92; font-size: 18px; padding: 0 3px; line-height: 1; }
@@ -58,6 +63,14 @@ main { max-width: 1060px; margin: auto; padding: 0 28px; }
 .analyze-button:not(:disabled):hover { background: var(--green-dark); }
 .analyze-button:disabled { opacity: .45; cursor: not-allowed; }
 .analyze-button > span:last-child { font-size: 17px; font-weight: 400; }
+.action-feedback { min-height: 17px; display: flex; align-items: flex-start; gap: 7px; margin: 10px 2px 0; color: #858a80; font-size: 10px; line-height: 1.55; }
+.feedback-dot { flex: 0 0 7px; width: 7px; height: 7px; margin-top: 4px; border-radius: 50%; background: #a3a89e; }
+.action-feedback.processing { color: #8a7045; }
+.action-feedback.processing .feedback-dot { background: #c8a665; animation: pulse 1s infinite alternate; }
+.action-feedback.success { color: #52744f; }
+.action-feedback.success .feedback-dot { background: #678c62; }
+.action-feedback.error { color: #9a5948; }
+.action-feedback.error .feedback-dot { background: #c87862; }
 .privacy-note { margin: 12px 0 0; color: #989d93; font-size: 9px; text-align: center; }
 .privacy-note span { font-size: 13px; vertical-align: -1px; margin-right: 4px; }
 .result-panel { display: flex; flex-direction: column; }
@@ -68,6 +81,11 @@ main { max-width: 1060px; margin: auto; padding: 0 28px; }
 .sparkle { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 50%; color: #8a9a7e; background: #edf1e9; font-size: 22px; }
 .result-empty p { margin: 14px 0 5px; font: 600 13px "Manrope", sans-serif; }
 .result-empty small { max-width: 230px; color: #a0a49c; font-size: 10px; line-height: 1.6; }
+.description-grid { display: grid; grid-template-columns: 1fr 1fr; align-self: stretch; width: 100%; gap: 12px; }
+.description-card { min-width: 0; padding: 13px; border: 1px solid #eaebe5; border-radius: 8px; background: #fff; }
+.description-card h3 { margin-bottom: 5px; color: var(--green); }
+.output-status { margin: 0 0 8px; color: #999e94; font-size: 9px; }
+.output-status.success-text { color: #52744f; }
 .loading-state strong { font: 600 13px "Manrope", sans-serif; margin: 13px 0 5px; }
 .loading-state > span:last-child { font-size: 10px; color: #a0a49c; }
 .loader { width: 27px; height: 27px; border: 2px solid #e1e7dd; border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; }
@@ -101,6 +119,8 @@ footer i { color: #8a9a7e; font-style: normal; }
   .workspace { grid-template-columns: 1fr; gap: 13px; }
   .panel { padding: 20px; }
   .result-content { min-height: 250px; }
+  .image-slot .dropzone { height: 145px; }
+  .description-grid { grid-template-columns: 1fr; }
   footer { padding-top: 34px; font-size: 7px; }
 }
 

@@ -1,70 +1,135 @@
-const imageInput = document.querySelector("#image-input");
-const dropzone = document.querySelector("#dropzone");
-const emptyState = document.querySelector("#empty-state");
-const previewState = document.querySelector("#preview-state");
-const imagePreview = document.querySelector("#image-preview");
-const imageMeta = document.querySelector("#image-meta");
-const fileName = document.querySelector("#file-name");
 const analyzeButton = document.querySelector("#analyze-button");
 const modelName = document.querySelector("#model-name");
 const resultStatus = document.querySelector("#result-status");
 const resultEmpty = document.querySelector("#result-empty");
+const descriptionGrid = document.querySelector("#description-grid");
 const loadingState = document.querySelector("#loading-state");
-const description = document.querySelector("#description");
 const errorBox = document.querySelector("#error-box");
 const errorMessage = document.querySelector("#error-message");
 const copyButton = document.querySelector("#copy-button");
+const actionFeedback = document.querySelector("#action-feedback");
+const selectedImages = [null, null];
+const previewUrls = [null, null];
 
-let selectedImage = null;
-let previewUrl = null;
+function slotElement(selector, index) {
+  return document.querySelector(`[${selector}="${index}"]`);
+}
 
-function setSelectedImage(file) {
+function updateSelectionFeedback() {
+  const count = selectedImages.filter(Boolean).length;
+  analyzeButton.disabled = count !== 2;
+  if (count === 0) {
+    setFeedback("Select two images to get started.", "neutral");
+  } else if (count === 1) {
+    const missing = selectedImages[0] ? "Image 2" : "Image 1";
+    setFeedback(`${missing} still needs to be selected.`, "neutral");
+  } else {
+    setFeedback("Both images are ready to analyze.", "ready");
+  }
+}
+
+function setFeedback(message, state = "neutral") {
+  actionFeedback.className = `action-feedback ${state}`;
+  actionFeedback.querySelector("span:last-child").textContent = message;
+}
+
+function setSelectedImage(index, file) {
   if (!file) return;
   if (!file.type.startsWith("image/")) {
-    showError("That file isn’t an image. Choose a JPG, PNG, WEBP, or another image format.");
+    showError(`Image ${index + 1} is not an image file. Choose a JPG, PNG, WEBP, or another image format.`);
     return;
   }
   if (file.size > 20 * 1024 * 1024) {
-    showError("That image is larger than 20 MB. Choose a smaller image and try again.");
+    showError(`Image ${index + 1} is larger than 20 MB. Choose a smaller image and try again.`);
     return;
   }
 
-  selectedImage = file;
-  if (previewUrl) URL.revokeObjectURL(previewUrl);
-  previewUrl = URL.createObjectURL(file);
-  imagePreview.src = previewUrl;
-  imagePreview.alt = `Preview of ${file.name}`;
-  fileName.textContent = file.name;
-  emptyState.hidden = true;
-  previewState.hidden = false;
-  imageMeta.hidden = false;
-  analyzeButton.disabled = false;
+  selectedImages[index] = file;
+  if (previewUrls[index]) URL.revokeObjectURL(previewUrls[index]);
+  previewUrls[index] = URL.createObjectURL(file);
+  const image = slotElement("data-image", index);
+  image.src = previewUrls[index];
+  image.alt = `Preview of image ${index + 1}: ${file.name}`;
+  slotElement("data-name", index).textContent = file.name;
+  slotElement("data-empty", index).hidden = true;
+  slotElement("data-preview", index).hidden = false;
+  slotElement("data-meta", index).hidden = false;
   clearOutput();
-  dropzone.classList.remove("dragging");
+  updateSelectionFeedback();
 }
 
 function clearOutput() {
   resultEmpty.hidden = false;
+  descriptionGrid.hidden = true;
   loadingState.hidden = true;
-  description.hidden = true;
   errorBox.hidden = true;
   copyButton.hidden = true;
   resultStatus.innerHTML = '<span class="status-dot"></span> READY WHEN YOU ARE';
+  for (let index = 0; index < 2; index += 1) {
+    slotElement("data-description", index).hidden = true;
+    slotElement("data-description", index).textContent = "";
+    slotElement("data-output-status", index).textContent = "Waiting";
+    slotElement("data-output-status", index).className = "output-status";
+  }
 }
 
-function showError(message, title = "Couldn’t connect to Ollama") {
+function showError(message, title = "Something went wrong") {
   resultEmpty.hidden = true;
   loadingState.hidden = true;
-  description.hidden = true;
+  descriptionGrid.hidden = true;
   errorBox.hidden = false;
   copyButton.hidden = true;
   errorMessage.textContent = message;
   document.querySelector("#error-title").textContent = title;
   resultStatus.innerHTML = '<span class="status-dot error-dot"></span> NEEDS ATTENTION';
+  setFeedback(message, "error");
 }
 
-async function analyzeImage() {
-  if (!selectedImage) return;
+async function describeImage(file, index, model) {
+  slotElement("data-output-status", index).textContent = "Preparing image…";
+  const imageBase64 = await toBase64(file);
+  slotElement("data-output-status", index).textContent = "Asking Ollama…";
+  const response = await fetch("http://localhost:11434/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      stream: false,
+      messages: [{
+        role: "user",
+        content: "Briefly describe the main subject, setting, and one or two notable details in this image. Avoid guessing.",
+        images: [imageBase64],
+      }],
+      think: false,
+      keep_alive: "10m",
+      options: { num_predict: 120 },
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`The model “${model}” was not found. Pull it with: ollama pull ${model}`);
+    }
+    throw new Error(data.error || `Ollama returned an error (${response.status}).`);
+  }
+
+  const text = data.message?.content?.trim();
+  if (!text) {
+    const hasThinkingOnly = Boolean(data.message?.thinking?.trim());
+    if (hasThinkingOnly) {
+      throw new Error("The model used its output limit on reasoning and did not return a description. Pull qwen3-vl:2b-instruct and use that model.");
+    }
+    throw new Error("The model returned an empty description. Try again or choose another vision model.");
+  }
+  return text;
+}
+
+async function analyzeImages() {
+  if (selectedImages.some((image) => !image)) {
+    updateSelectionFeedback();
+    return;
+  }
   const model = modelName.value.trim();
   if (!model) {
     showError("Enter the name of an installed Ollama vision model.", "Choose a model");
@@ -74,60 +139,32 @@ async function analyzeImage() {
 
   analyzeButton.disabled = true;
   resultEmpty.hidden = true;
-  description.hidden = true;
   errorBox.hidden = true;
-  loadingState.hidden = false;
+  loadingState.hidden = true;
+  descriptionGrid.hidden = false;
   copyButton.hidden = true;
   resultStatus.innerHTML = '<span class="status-dot working-dot"></span> ANALYZING';
 
   try {
-    const imageBase64 = await toBase64(selectedImage);
-    const response = await fetch("http://localhost:11434/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        stream: false,
-        messages: [{
-          role: "user",
-          content: "Briefly describe the main subject, setting, and one or two notable details. Avoid guessing.",
-          images: [imageBase64],
-        }],
-        think: false,
-        keep_alive: "10m",
-        options: { num_predict: 120 },
-      }),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error(`The model “${model}” was not found. Pull it with: ollama pull ${model}`);
-      }
-      throw new Error(data.error || `Ollama returned an error (${response.status}).`);
+    for (let index = 0; index < 2; index += 1) {
+      setFeedback(`AI is processing image ${index + 1} of 2…`, "processing");
+      const text = await describeImage(selectedImages[index], index, model);
+      const output = slotElement("data-description", index);
+      output.textContent = text;
+      output.hidden = false;
+      slotElement("data-output-status", index).textContent = "Description ready";
+      slotElement("data-output-status", index).classList.add("success-text");
     }
-
-    const text = data.message?.content?.trim();
-    if (!text) {
-      const hasThinkingOnly = Boolean(data.message?.thinking?.trim());
-      if (hasThinkingOnly) {
-        throw new Error("The model used its output limit on reasoning and did not return a description. Run `ollama pull qwen3-vl:2b-instruct`, then use qwen3-vl:2b-instruct in the model field.");
-      }
-      throw new Error("The model returned an empty description. Try again or choose another vision model.");
-    }
-
-    description.textContent = text;
-    description.hidden = false;
-    loadingState.hidden = true;
+    resultStatus.innerHTML = '<span class="status-dot success-dot"></span> DESCRIPTIONS READY';
+    setFeedback("Request successful. Both image descriptions are ready.", "success");
     copyButton.hidden = false;
-    resultStatus.innerHTML = '<span class="status-dot success-dot"></span> DESCRIPTION READY';
   } catch (error) {
     const message = error instanceof TypeError
       ? "The browser couldn’t reach Ollama. Make sure it’s running at localhost:11434. Browser security settings may also block this page; if so, serve the page locally and allow its origin in OLLAMA_ORIGINS, then restart Ollama."
       : error.message;
     showError(message);
   } finally {
-    analyzeButton.disabled = !selectedImage;
+    analyzeButton.disabled = false;
   }
 }
 
@@ -152,7 +189,10 @@ function toBase64(file) {
       canvas.width = Math.round(bitmap.width * scale);
       canvas.height = Math.round(bitmap.height * scale);
       const context = canvas.getContext("2d");
-      if (!context) throw new Error("The image could not be prepared. Please choose it again.");
+      if (!context) {
+        bitmap.close();
+        throw new Error("The image could not be prepared. Please choose it again.");
+      }
       context.fillStyle = "#fff";
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
@@ -165,48 +205,53 @@ function toBase64(file) {
   });
 }
 
-imageInput.addEventListener("change", (event) => setSelectedImage(event.target.files[0]));
-analyzeButton.addEventListener("click", analyzeImage);
-
-document.querySelector("#remove-image").addEventListener("click", () => {
-  selectedImage = null;
-  if (previewUrl) URL.revokeObjectURL(previewUrl);
-  previewUrl = null;
-  imagePreview.removeAttribute("src");
-  imageInput.value = "";
-  emptyState.hidden = false;
-  previewState.hidden = true;
-  imageMeta.hidden = true;
-  analyzeButton.disabled = true;
-  clearOutput();
-});
-
-dropzone.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    imageInput.click();
+for (let index = 0; index < 2; index += 1) {
+  const input = slotElement("data-input", index);
+  const dropzone = slotElement("data-dropzone", index);
+  input.addEventListener("change", (event) => setSelectedImage(index, event.target.files[0]));
+  dropzone.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      input.click();
+    }
+  });
+  for (const eventName of ["dragenter", "dragover"]) {
+    dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropzone.classList.add("dragging");
+    });
   }
-});
-
-for (const eventName of ["dragenter", "dragover"]) {
-  dropzone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    dropzone.classList.add("dragging");
+  for (const eventName of ["dragleave", "drop"]) {
+    dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      if (eventName === "drop") setSelectedImage(index, event.dataTransfer.files[0]);
+      dropzone.classList.remove("dragging");
+    });
+  }
+  slotElement("data-remove", index).addEventListener("click", () => {
+    selectedImages[index] = null;
+    if (previewUrls[index]) URL.revokeObjectURL(previewUrls[index]);
+    previewUrls[index] = null;
+    slotElement("data-image", index).removeAttribute("src");
+    input.value = "";
+    slotElement("data-empty", index).hidden = false;
+    slotElement("data-preview", index).hidden = true;
+    slotElement("data-meta", index).hidden = true;
+    clearOutput();
+    updateSelectionFeedback();
   });
 }
-for (const eventName of ["dragleave", "drop"]) {
-  dropzone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    if (eventName === "drop") setSelectedImage(event.dataTransfer.files[0]);
-    dropzone.classList.remove("dragging");
-  });
-}
 
+analyzeButton.addEventListener("click", analyzeImages);
 copyButton.addEventListener("click", async () => {
+  const text = [0, 1].map((index) => {
+    const output = slotElement("data-description", index);
+    return `Image ${index + 1}:\n${output.textContent}`;
+  }).join("\n\n");
   try {
-    await navigator.clipboard.writeText(description.textContent);
+    await navigator.clipboard.writeText(text);
     copyButton.innerHTML = 'Copied <span aria-hidden="true">✓</span>';
-    window.setTimeout(() => { copyButton.innerHTML = 'Copy description <span aria-hidden="true">⧉</span>'; }, 1600);
+    window.setTimeout(() => { copyButton.innerHTML = 'Copy descriptions <span aria-hidden="true">⧉</span>'; }, 1600);
   } catch {
     copyButton.textContent = "Copy unavailable";
   }
