@@ -35,7 +35,7 @@
           </div>
         </label>
         <div class="image-meta" id="image-meta" hidden><span class="file-icon">▧</span><span id="file-name"></span><button class="icon-button" id="remove-image" type="button" aria-label="Remove image">×</button></div>
-        <div class="model-row"><label for="model-name">VISION MODEL</label><input id="model-name" type="text" value="qwen3-vl:4b" spellcheck="false" autocomplete="off"><span class="model-hint">via Ollama</span></div>
+        <div class="model-row"><label for="model-name">VISION MODEL</label><input id="model-name" type="text" value="qwen3-vl:2b-instruct" spellcheck="false" autocomplete="off"><span class="model-hint">via Ollama</span></div>
         <button id="analyze-button" class="analyze-button" type="button" disabled><span>Describe this image</span><span aria-hidden="true">↗</span></button>
         <p class="privacy-note"><span aria-hidden="true">⌑</span> Runs locally on your machine. No cloud upload.</p>
       </div>
@@ -46,7 +46,7 @@
           <div class="result-empty" id="result-empty"><span class="sparkle" aria-hidden="true">✳</span><p>Your description will appear here.</p><small>A clear, thoughtful summary of the scene, objects, and details.</small></div>
           <div class="loading-state" id="loading-state" hidden><span class="loader" aria-hidden="true"></span><strong>Taking a closer look…</strong><span>Your local model is analyzing the image.</span></div>
           <div class="description" id="description" hidden></div>
-          <div class="error-box" id="error-box" hidden><strong id="error-title">Couldn’t connect to Ollama</strong><p id="error-message"></p><details><summary>Connection help</summary><p>Make sure Ollama is running and that the selected vision model is installed. In a terminal, try <code>ollama pull qwen3-vl:4b</code>. If you opened this page from a local web server, allow that server’s origin in <code>OLLAMA_ORIGINS</code> and restart Ollama.</p></details></div>
+          <div class="error-box" id="error-box" hidden><strong id="error-title">Couldn’t connect to Ollama</strong><p id="error-message"></p><details><summary>Connection help</summary><p>Make sure Ollama is running and that the selected vision model is installed. In a terminal, try <code>ollama pull qwen3-vl:2b-instruct</code>. If you opened this page from a local web server, allow that server’s origin in <code>OLLAMA_ORIGINS</code> and restart Ollama.</p></details></div>
         </div>
         <div class="result-footer"><button id="copy-button" type="button" hidden>Copy description <span aria-hidden="true">⧉</span></button></div>
       </div>

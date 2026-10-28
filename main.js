@@ -90,9 +90,12 @@ async function analyzeImage() {
         stream: false,
         messages: [{
           role: "user",
-          content: "Describe this image clearly and naturally. Mention the main subject, setting, notable details, and any visible text. Avoid guessing details that are not clear.",
+          content: "Briefly describe the main subject, setting, and one or two notable details. Avoid guessing.",
           images: [imageBase64],
         }],
+        think: false,
+        keep_alive: "10m",
+        options: { num_predict: 120 },
       }),
     });
 
@@ -105,7 +108,13 @@ async function analyzeImage() {
     }
 
     const text = data.message?.content?.trim();
-    if (!text) throw new Error("The model returned an empty description. Try again or choose another vision model.");
+    if (!text) {
+      const hasThinkingOnly = Boolean(data.message?.thinking?.trim());
+      if (hasThinkingOnly) {
+        throw new Error("The model used its output limit on reasoning and did not return a description. Run `ollama pull qwen3-vl:2b-instruct`, then use qwen3-vl:2b-instruct in the model field.");
+      }
+      throw new Error("The model returned an empty description. Try again or choose another vision model.");
+    }
 
     description.textContent = text;
     description.hidden = false;
@@ -124,10 +133,35 @@ async function analyzeImage() {
 
 function toBase64(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1]);
-    reader.onerror = () => reject(new Error("The image could not be read. Please choose it again."));
-    reader.readAsDataURL(file);
+    const readAsBase64 = (blob) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(",")[1]);
+      reader.onerror = () => reject(new Error("The image could not be read. Please choose it again."));
+      reader.readAsDataURL(blob);
+    };
+
+    if (!window.createImageBitmap) {
+      readAsBase64(file);
+      return;
+    }
+
+    createImageBitmap(file).then((bitmap) => {
+      const maxEdge = 1280;
+      const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("The image could not be prepared. Please choose it again.");
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      canvas.toBlob((blob) => {
+        if (blob) readAsBase64(blob);
+        else reject(new Error("The image could not be prepared. Please choose it again."));
+      }, "image/jpeg", 0.84);
+    }).catch(reject);
   });
 }
 
