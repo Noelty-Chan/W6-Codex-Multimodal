@@ -1,0 +1,77 @@
+TASK 1 
+Prompt 1: 
+Create a simple webpage where a user can:
+1. Select an image from their computer. 
+2. Preview the selected image on the webpage. Click a button to send the image to an AI model running through Ollama. 
+3. Have the AI analyze the image and return a text description of what it sees. 
+4. Display the AI-generated description clearly on the webpage.
+
+Prompt 2: 
+Rename the site so thay it's called "Ollama Multi-modal Image Describer"
+
+Prompt 3: 
+Make the aforementioned website title visible on the front end. 
+
+Prompt 4:
+The site has issues running the model you connected to the site. How can this be resolved?
+
+Prompt 5:
+I can't resolve the issue. It keeps giving me the following message: "llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'error loading model: unknown model architecture: 'mllama'"
+
+Prompt 6:
+The site has issues running the model you connected to the site. How can this be resolved?
+
+Prompt 7:
+I can't resolve the issue. It keeps giving me the following message: "llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'error loading model: unknown model architecture: 'mllama'"
+
+Prompt 8:
+remove extra captions from the website
+
+Prompt 9:
+remove the text beneath the page title
+
+Prompt 10:
+add the following functions to the webpage:
+1. provide feedback no image has been selected, 
+2. the AI is processing the image, the request is successful,
+ 
+* something goes wrong.
+
+Prompt 11:
+add the following functions to the webpage:
+1. provide feedback when no image has been selected.
+2. provide feedback when the AI is processing the image.3. provide feedback when the request is successful.
+3. provide feedback when something goes wrong.
+
+
+Prompt 12:
+remove page title from main section of the webpage and adjust wordmark to be more visible.
+
+Prompt 13:
+reduce the amount of time it takes for the AI model to analyze the image and return a text description.
+
+Prompt 14:
+new issue has emerged when generating a description to the image: "Couldn’t connect to OllamaThe model returned an empty description. Try again or choose another vision model."
+
+
+TASK 2 
+Prompt 1: 
+Adjust webpage to including the following features:
+1. Allow the user to select two different images.
+2. Display a preview of both selected images.
+3. Send both images to the AI.
+4. Generate a separate description for each image.
+
+Prompt 2: 
+modify webpage to clearly show which description belongs to Image 1 and which belongs to Image 2.
+
+Prompt 3: 
+Add webpage feature so that it correctly handle the situation where only one image has been selected.
+
+Prompt 4:
+Revise the webpage so that it has all the following features:
+1. Display a preview of both selected images. 
+2. Send both images to the AI. 
+3. Generate a separate description for each image. 
+4. Clearly show which description belongs to Image 1 and which belongs to Image 2. 
+5. Correctly handle the situation where only one image has been selected.
