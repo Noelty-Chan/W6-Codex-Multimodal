@@ -51,6 +51,9 @@ function setSelectedImage(index, file) {
   image.src = previewUrls[index];
   image.alt = `Preview of image ${index + 1}: ${file.name}`;
   slotElement("data-name", index).textContent = file.name;
+  slotElement("data-result-image", index).src = previewUrls[index];
+  slotElement("data-result-image", index).alt = `Thumbnail of image ${index + 1}`;
+  slotElement("data-result-name", index).textContent = file.name;
   slotElement("data-empty", index).hidden = true;
   slotElement("data-preview", index).hidden = false;
   slotElement("data-meta", index).hidden = false;
@@ -233,6 +236,8 @@ for (let index = 0; index < 2; index += 1) {
     if (previewUrls[index]) URL.revokeObjectURL(previewUrls[index]);
     previewUrls[index] = null;
     slotElement("data-image", index).removeAttribute("src");
+    slotElement("data-result-image", index).removeAttribute("src");
+    slotElement("data-result-name", index).textContent = "";
     input.value = "";
     slotElement("data-empty", index).hidden = false;
     slotElement("data-preview", index).hidden = true;
