@@ -50,8 +50,8 @@
           </div>
         </div>
         <div class="model-row"><label for="model-name">VISION MODEL</label><input id="model-name" type="text" value="qwen3-vl:2b-instruct" spellcheck="false" autocomplete="off"><span class="model-hint">via Ollama</span></div>
-        <button id="analyze-button" class="analyze-button" type="button" disabled><span>Describe both images</span><span aria-hidden="true">↗</span></button>
-        <p class="action-feedback" id="action-feedback" role="status" aria-live="polite"><span class="feedback-dot"></span><span>Select two images to get started.</span></p>
+        <button id="analyze-button" class="analyze-button" type="button" disabled><span id="analyze-label">Describe selected image</span><span aria-hidden="true">↗</span></button>
+        <p class="action-feedback" id="action-feedback" role="status" aria-live="polite"><span class="feedback-dot"></span><span>Select at least one image to get started. You can add a second image too.</span></p>
         <p class="privacy-note"><span aria-hidden="true">⌑</span> Runs locally on your machine. No cloud upload.</p>
       </div>
 
@@ -60,8 +60,8 @@
         <div class="result-content" id="result-content">
           <div class="result-empty" id="result-empty"><span class="sparkle" aria-hidden="true">✳</span><p>Your descriptions will appear here.</p><small>Each image will receive its own description.</small></div>
           <div class="description-grid" id="description-grid" hidden>
-            <article class="description-card"><h3>Image 1 description</h3><div class="result-source"><img data-result-image="0" alt=""><span data-result-name="0"></span></div><p class="output-status" data-output-status="0">Waiting</p><div class="description" data-description="0" hidden></div></article>
-            <article class="description-card"><h3>Image 2 description</h3><div class="result-source"><img data-result-image="1" alt=""><span data-result-name="1"></span></div><p class="output-status" data-output-status="1">Waiting</p><div class="description" data-description="1" hidden></div></article>
+            <article class="description-card" data-result-card="0"><h3>Image 1 description</h3><div class="result-source"><img data-result-image="0" alt=""><span data-result-name="0"></span></div><p class="output-status" data-output-status="0">Waiting</p><div class="description" data-description="0" hidden></div></article>
+            <article class="description-card" data-result-card="1"><h3>Image 2 description</h3><div class="result-source"><img data-result-image="1" alt=""><span data-result-name="1"></span></div><p class="output-status" data-output-status="1">Waiting</p><div class="description" data-description="1" hidden></div></article>
           </div>
           <div class="loading-state" id="loading-state" hidden><span class="loader" aria-hidden="true"></span><strong>Taking a closer look…</strong><span>Your local model is analyzing the images.</span></div>
           <div class="error-box" id="error-box" hidden><strong id="error-title">Couldn’t connect to Ollama</strong><p id="error-message"></p><details><summary>Connection help</summary><p>Make sure Ollama is running and that the selected vision model is installed. In a terminal, try <code>ollama pull qwen3-vl:2b-instruct</code>. If you opened this page from a local web server, allow that server’s origin in <code>OLLAMA_ORIGINS</code> and restart Ollama.</p></details></div>

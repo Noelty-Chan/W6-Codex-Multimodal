@@ -1,4 +1,5 @@
 const analyzeButton = document.querySelector("#analyze-button");
+const analyzeLabel = document.querySelector("#analyze-label");
 const modelName = document.querySelector("#model-name");
 const resultStatus = document.querySelector("#result-status");
 const resultEmpty = document.querySelector("#result-empty");
@@ -17,12 +18,14 @@ function slotElement(selector, index) {
 
 function updateSelectionFeedback() {
   const count = selectedImages.filter(Boolean).length;
-  analyzeButton.disabled = count !== 2;
+  analyzeButton.disabled = count === 0;
+  analyzeLabel.textContent = count === 2 ? "Describe both images" : "Describe selected image";
   if (count === 0) {
-    setFeedback("Select two images to get started.", "neutral");
+    setFeedback("Select at least one image to get started. You can add a second image too.", "neutral");
   } else if (count === 1) {
-    const missing = selectedImages[0] ? "Image 2" : "Image 1";
-    setFeedback(`${missing} still needs to be selected.`, "neutral");
+    const selected = selectedImages[0] ? "Image 1" : "Image 2";
+    const optional = selectedImages[0] ? "Image 2" : "Image 1";
+    setFeedback(`${selected} is ready. You can analyze it now or also add ${optional}.`, "ready");
   } else {
     setFeedback("Both images are ready to analyze.", "ready");
   }
@@ -64,11 +67,13 @@ function setSelectedImage(index, file) {
 function clearOutput() {
   resultEmpty.hidden = false;
   descriptionGrid.hidden = true;
+  descriptionGrid.classList.remove("single-result");
   loadingState.hidden = true;
   errorBox.hidden = true;
   copyButton.hidden = true;
   resultStatus.innerHTML = '<span class="status-dot"></span> READY WHEN YOU ARE';
   for (let index = 0; index < 2; index += 1) {
+    slotElement("data-result-card", index).hidden = !selectedImages[index];
     slotElement("data-description", index).hidden = true;
     slotElement("data-description", index).textContent = "";
     slotElement("data-output-status", index).textContent = "Waiting";
@@ -129,7 +134,10 @@ async function describeImage(file, index, model) {
 }
 
 async function analyzeImages() {
-  if (selectedImages.some((image) => !image)) {
+  const selectedIndices = selectedImages
+    .map((image, index) => image ? index : -1)
+    .filter((index) => index !== -1);
+  if (selectedIndices.length === 0) {
     updateSelectionFeedback();
     return;
   }
@@ -145,12 +153,17 @@ async function analyzeImages() {
   errorBox.hidden = true;
   loadingState.hidden = true;
   descriptionGrid.hidden = false;
+  descriptionGrid.classList.toggle("single-result", selectedIndices.length === 1);
   copyButton.hidden = true;
   resultStatus.innerHTML = '<span class="status-dot working-dot"></span> ANALYZING';
+  for (let index = 0; index < 2; index += 1) {
+    slotElement("data-result-card", index).hidden = !selectedImages[index];
+  }
 
   try {
-    for (let index = 0; index < 2; index += 1) {
-      setFeedback(`AI is processing image ${index + 1} of 2…`, "processing");
+    for (let position = 0; position < selectedIndices.length; position += 1) {
+      const index = selectedIndices[position];
+      setFeedback(`AI is processing image ${position + 1} of ${selectedIndices.length}…`, "processing");
       const text = await describeImage(selectedImages[index], index, model);
       const output = slotElement("data-description", index);
       output.textContent = text;
@@ -158,8 +171,8 @@ async function analyzeImages() {
       slotElement("data-output-status", index).textContent = "Description ready";
       slotElement("data-output-status", index).classList.add("success-text");
     }
-    resultStatus.innerHTML = '<span class="status-dot success-dot"></span> DESCRIPTIONS READY';
-    setFeedback("Request successful. Both image descriptions are ready.", "success");
+    resultStatus.innerHTML = `<span class="status-dot success-dot"></span> ${selectedIndices.length === 1 ? "DESCRIPTION READY" : "DESCRIPTIONS READY"}`;
+    setFeedback(`Request successful. ${selectedIndices.length === 1 ? "The image description is" : "Both image descriptions are"} ready.`, "success");
     copyButton.hidden = false;
   } catch (error) {
     const message = error instanceof TypeError
@@ -167,7 +180,7 @@ async function analyzeImages() {
       : error.message;
     showError(message);
   } finally {
-    analyzeButton.disabled = false;
+    analyzeButton.disabled = selectedImages.every((image) => !image);
   }
 }
 
@@ -249,7 +262,7 @@ for (let index = 0; index < 2; index += 1) {
 
 analyzeButton.addEventListener("click", analyzeImages);
 copyButton.addEventListener("click", async () => {
-  const text = [0, 1].map((index) => {
+  const text = [0, 1].filter((index) => selectedImages[index]).map((index) => {
     const output = slotElement("data-description", index);
     return `Image ${index + 1}:\n${output.textContent}`;
   }).join("\n\n");
